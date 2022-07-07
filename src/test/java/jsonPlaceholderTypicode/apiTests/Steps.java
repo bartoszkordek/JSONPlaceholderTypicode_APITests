@@ -48,12 +48,8 @@ public class Steps {
         Annotation stepName = callingMethod.getAnnotations()[0];
 
         String endpoint = baseUrl+"posts";
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(endpoint))
-                .GET()
-                .build();
-        response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        sendGetRequestSingleClient(baseUrl+"posts");
+
         statuses.add(new StatusMessageBuilder(stepName, response.statusCode(), endpoint));
     }
 
@@ -63,12 +59,8 @@ public class Steps {
         Annotation stepName = callingMethod.getAnnotations()[0];
 
         String endpoint = baseUrl+"posts/"+id;
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(endpoint))
-                .GET()
-                .build();
-        response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        sendGetRequestSingleClient(endpoint);
+
         statuses.add(new StatusMessageBuilder(stepName, response.statusCode(), endpoint));
     }
 
@@ -78,12 +70,8 @@ public class Steps {
         Annotation stepName = callingMethod.getAnnotations()[0];
 
         String endpoint = baseUrl+"posts/"+postId+"/comments";
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(endpoint))
-                .GET()
-                .build();
-        response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        sendGetRequestSingleClient(endpoint);
+
         statuses.add(new StatusMessageBuilder(stepName, response.statusCode(), endpoint));
     }
 
@@ -93,12 +81,8 @@ public class Steps {
         Annotation stepName = callingMethod.getAnnotations()[0];
 
         String endpoint = baseUrl+"comments?email="+email;
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(endpoint))
-                .GET()
-                .build();
-        response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        sendGetRequestSingleClient(endpoint);
+
         statuses.add(new StatusMessageBuilder(stepName, response.statusCode(), endpoint));
     }
 
@@ -148,6 +132,15 @@ public class Steps {
         for(GetPostCommentsResponse comment : getPostCommentsResponse){
             Assertions.assertEquals(postId, comment.getPostId());
         }
+    }
+
+    private void sendGetRequestSingleClient(String endpoint) throws IOException, InterruptedException {
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(endpoint))
+                .GET()
+                .build();
+        response = client.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
     private void validateIfAllGetPostFieldsArePopulated(GetPostResponse post){
