@@ -6,8 +6,10 @@ import io.cucumber.java.Before;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import jsonPlaceholderTypicode.models.response.GetPostCommentsResponse;
 import jsonPlaceholderTypicode.models.response.GetPostResponse;
 import jsonPlaceholderTypicode.utils.StatusMessageBuilder;
+import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 
 import java.io.IOException;
@@ -18,6 +20,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Steps {
@@ -69,6 +72,22 @@ public class Steps {
         statuses.add(new StatusMessageBuilder(stepName, response.statusCode(), endpoint));
     }
 
+    @When("Get all comments for post id {int}")
+    public void get_all_comments_for_post_id(Integer postId) throws IOException, InterruptedException {
+        Method callingMethod = new Object() {} .getClass() .getEnclosingMethod();
+        Annotation stepName = callingMethod.getAnnotations()[0];
+
+        String endpoint = baseUrl+"posts/"+postId+"/comments";
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(endpoint))
+                .GET()
+                .build();
+        response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        statuses.add(new StatusMessageBuilder(stepName, response.statusCode(), endpoint));
+    }
+
     @Then("Validate that response code is {int}")
     public void validate_that_response_code_is(Integer expectedResponseCode) {
         Assertions.assertEquals(expectedResponseCode, response.statusCode());
@@ -78,6 +97,39 @@ public class Steps {
     public void validate_if_total_posts_are(Integer expectedTotal) throws JsonProcessingException {
         GetPostResponse[] getPostResponses = objectMapper.readValue(response.body(),GetPostResponse[].class);
         Assertions.assertEquals(expectedTotal, getPostResponses.length);
+    }
+
+    @Then("Validate if total comments are {int}")
+    public void validate_if_total_comments_are(Integer expectedTotal) throws JsonProcessingException {
+        GetPostCommentsResponse[] getPostCommentsResponse = objectMapper
+                .readValue(response.body(),GetPostCommentsResponse[].class);
+        Assertions.assertEquals(expectedTotal, getPostCommentsResponse.length);
+    }
+
+
+    @Then("Validate if all post related fields are populated for single post")
+    public void validate_if_all_post_related_fields_are_populated_for_single_post() throws JsonProcessingException {
+        GetPostResponse getPostResponse = objectMapper.readValue(response.body(), GetPostResponse.class);
+        Assert.assertNotNull(getPostResponse.getUserId());
+        Assert.assertNotNull(getPostResponse.getId());
+        Assert.assertNotNull(getPostResponse.getTitle());
+        Assert.assertNotNull(getPostResponse.getBody());
+    }
+
+    @Then("Validate if all comments related to post id {int}")
+    public void validate_if_all_comments_related_to_post_id(Integer totalComments) throws JsonProcessingException {
+        GetPostCommentsResponse[] getPostCommentsResponse = objectMapper.
+                readValue(response.body(),GetPostCommentsResponse[].class);
+        Assertions.assertEquals(totalComments, getPostCommentsResponse.length);
+    }
+
+    @Then("Validate if all comments are related to post id {int}")
+    public void validate_if_all_comments_are_related_to_post_id(Integer postId) throws JsonProcessingException {
+        GetPostCommentsResponse[] getPostCommentsResponse = objectMapper.
+                readValue(response.body(),GetPostCommentsResponse[].class);
+        for(GetPostCommentsResponse comment : getPostCommentsResponse){
+            Assertions.assertEquals(postId, comment.getPostId());
+        }
     }
 
 }
