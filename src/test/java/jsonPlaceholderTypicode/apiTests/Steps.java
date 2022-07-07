@@ -112,6 +112,14 @@ public class Steps {
         validateIfAllGetPostFieldsArePopulated(objectMapper.readValue(response.body(), GetPostResponse.class));
     }
 
+    @Then("Validate if all post related fields are populated for multiple posts")
+    public void validate_if_all_post_related_fields_are_populated_for_multiple_posts() throws JsonProcessingException {
+        GetPostResponse[] posts = objectMapper.readValue(response.body(),GetPostResponse[].class);
+        for(GetPostResponse post : posts)
+            validateIfAllGetPostFieldsArePopulated(post);
+
+    }
+
     @Then("Validate if all comments related to post id {int}")
     public void validate_if_all_comments_related_to_post_id(Integer totalComments) throws JsonProcessingException {
         GetPostCommentsResponse[] getPostCommentsResponse = objectMapper.
