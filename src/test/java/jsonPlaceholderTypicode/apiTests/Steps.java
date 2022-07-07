@@ -109,11 +109,7 @@ public class Steps {
 
     @Then("Validate if all post related fields are populated for single post")
     public void validate_if_all_post_related_fields_are_populated_for_single_post() throws JsonProcessingException {
-        GetPostResponse getPostResponse = objectMapper.readValue(response.body(), GetPostResponse.class);
-        Assert.assertNotNull(getPostResponse.getUserId());
-        Assert.assertNotNull(getPostResponse.getId());
-        Assert.assertNotNull(getPostResponse.getTitle());
-        Assert.assertNotNull(getPostResponse.getBody());
+        validateIfAllGetPostFieldsArePopulated(objectMapper.readValue(response.body(), GetPostResponse.class));
     }
 
     @Then("Validate if all comments related to post id {int}")
@@ -130,6 +126,13 @@ public class Steps {
         for(GetPostCommentsResponse comment : getPostCommentsResponse){
             Assertions.assertEquals(postId, comment.getPostId());
         }
+    }
+
+    private void validateIfAllGetPostFieldsArePopulated(GetPostResponse post){
+        Assert.assertNotNull(post.getUserId());
+        Assert.assertNotNull(post.getId());
+        Assert.assertNotNull(post.getTitle());
+        Assert.assertNotNull(post.getBody());
     }
 
 }
