@@ -84,6 +84,20 @@ public class Steps {
                 .GET()
                 .build();
         response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        statuses.add(new StatusMessageBuilder(stepName, response.statusCode(), endpoint));
+    }
+
+    @When("Get all comments sent by email {string}")
+    public void get_all_comments_sent_by_email(String email) throws IOException, InterruptedException {
+        Method callingMethod = new Object() {} .getClass() .getEnclosingMethod();
+        Annotation stepName = callingMethod.getAnnotations()[0];
+
+        String endpoint = baseUrl+"comments?email="+email;
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(endpoint))
+                .GET()
+                .build();
         response = client.send(request, HttpResponse.BodyHandlers.ofString());
         statuses.add(new StatusMessageBuilder(stepName, response.statusCode(), endpoint));
     }

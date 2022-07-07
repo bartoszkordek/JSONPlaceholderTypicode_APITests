@@ -11,14 +11,20 @@ Feature: Automation tests of GET requests of jsonplaceholder.typicode.com (https
     And Validate if all post related fields are populated for multiple posts
 
   @APITest @Get @SingleClient
-  Scenario: Validate if post id 1 is displayed single client
+  Scenario: Validate if specific post is displayed single client
     When Get a post id 1
     Then Validate that response code is 200
     And Validate if all post related fields are populated for single post
 
   @APITest @Get @SingleClient
-  Scenario: Validate if post id 1 comments is displayed single client
+  Scenario: Validate if specific post comments are displayed single client
     When Get all comments for post id 1
     Then Validate that response code is 200
     And Validate if total comments are 5
     And Validate if all comments are related to post id 1
+
+  @APITest @Get @SingleClient
+  Scenario: Validate if all comments sent by specific email are displayed single client
+    When Get all comments sent by email "Nikita@garfield.biz"
+    Then Validate that response code is 200
+    And Validate if total comments are 1
