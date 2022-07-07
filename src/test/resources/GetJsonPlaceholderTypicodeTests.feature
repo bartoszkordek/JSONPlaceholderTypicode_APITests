@@ -17,6 +17,13 @@ Feature: Automation tests of GET requests of jsonplaceholder.typicode.com (https
     And Validate if all post related fields are populated for single post
 
   @APITest @Get @SingleClient
+  Scenario: Validate if posts sent by specific user are displayed single client
+    When Get all posts sent by user 2
+    Then Validate that response code is 200
+    And Validate if total posts are 10
+    And Validate if all post are sent by user 2
+
+  @APITest @Get @SingleClient
   Scenario: Validate if specific post comments are displayed single client
     When Get all comments for post id 1
     Then Validate that response code is 200

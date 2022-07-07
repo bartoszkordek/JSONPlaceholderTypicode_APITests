@@ -64,6 +64,17 @@ public class Steps {
         statuses.add(new StatusMessageBuilder(stepName, response.statusCode(), endpoint));
     }
 
+    @When("Get all posts sent by user {int}")
+    public void get_all_posts_sent_by_user(Integer userId) throws IOException, InterruptedException {
+        Method callingMethod = new Object() {} .getClass() .getEnclosingMethod();
+        Annotation stepName = callingMethod.getAnnotations()[0];
+
+        String endpoint = baseUrl+"posts/?userId="+userId;
+        sendGetRequestSingleClient(endpoint);
+
+        statuses.add(new StatusMessageBuilder(stepName, response.statusCode(), endpoint));
+    }
+
     @When("Get all comments for post id {int}")
     public void get_all_comments_for_post_id(Integer postId) throws IOException, InterruptedException {
         Method callingMethod = new Object() {} .getClass() .getEnclosingMethod();
@@ -95,6 +106,14 @@ public class Steps {
     public void validate_if_total_posts_are(Integer expectedTotal) throws JsonProcessingException {
         GetPostResponse[] getPostResponses = objectMapper.readValue(response.body(),GetPostResponse[].class);
         Assertions.assertEquals(expectedTotal, getPostResponses.length);
+    }
+
+    @Then("Validate if all post are sent by user {int}")
+    public void validate_if_all_post_are_sent_by_user(Integer userId) throws JsonProcessingException {
+        GetPostResponse[] getPostResponse = objectMapper
+                .readValue(response.body(),GetPostResponse[].class);
+        List<Integer> userIds = Arrays.stream(getPostResponse).map(post -> post.getUserId()).toList();
+        Assertions.assertTrue(userIds.isEmpty() || (userIds.get(0).equals(userId) && userIds.stream().allMatch(userIds.get(0)::equals)));
     }
 
     @Then("Validate if total comments are {int}")
