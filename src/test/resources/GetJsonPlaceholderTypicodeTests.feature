@@ -8,13 +8,13 @@ Feature: Automation tests of GET requests of jsonplaceholder.typicode.com (https
     When Get a list of posts
     Then Validate that response code is 200
     And Validate if total posts are 100
-    And Validate if all post related fields are populated for multiple posts
+    And Validate if all post related fields are populated for multiple posts GET request
 
   @APITest @Get @SingleClient
   Scenario: Validate if specific post is displayed single client
     When Get a post id 1
     Then Validate that response code is 200
-    And Validate if all post related fields are populated for single post
+    And Validate if all post related fields are populated for single post GET request
 
   @APITest @Get @SingleClient
   Scenario: Validate if posts sent by specific user are displayed single client
