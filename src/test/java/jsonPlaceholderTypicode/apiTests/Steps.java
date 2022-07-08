@@ -14,6 +14,7 @@ import jsonPlaceholderTypicode.models.response.GET_PostResponse;
 import jsonPlaceholderTypicode.models.response.POST_PostResponse;
 import jsonPlaceholderTypicode.models.response.PUT_PostResponse;
 import jsonPlaceholderTypicode.utils.StatusMessageBuilder;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 
@@ -227,14 +228,14 @@ public class Steps {
         response = client.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
-    private void validateIfAllGetPostFieldsArePopulated(GET_PostResponse post){
+    private void validateIfAllGetPostFieldsArePopulated(@NotNull GET_PostResponse post){
         Assert.assertNotNull(post.getUserId());
         Assert.assertNotNull(post.getId());
         Assert.assertNotNull(post.getTitle());
         Assert.assertNotNull(post.getBody());
     }
 
-    private void validateIfAllPutPostFieldsArePopulated(PUT_PostResponse post){
+    private void validateIfAllPutPostFieldsArePopulated(@NotNull PUT_PostResponse post){
         Assert.assertNotNull(post.getUserId());
         Assert.assertNotNull(post.getId());
         Assert.assertNotNull(post.getTitle());
