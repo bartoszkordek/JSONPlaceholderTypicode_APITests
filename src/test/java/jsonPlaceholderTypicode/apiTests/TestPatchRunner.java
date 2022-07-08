@@ -9,7 +9,8 @@ import org.junit.runner.RunWith;
         plugin = {"pretty"},
         features = "src/test/resources",
         glue = {"jsonPlaceholderTypicode/apiTests"},
-        tags = "@APITest"
+        tags = "@APITest and @Patch"
 )
-public class TestRunner {
+public class TestPatchRunner {
 }
+
