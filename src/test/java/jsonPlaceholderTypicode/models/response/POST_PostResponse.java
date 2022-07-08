@@ -1,12 +1,12 @@
 package jsonPlaceholderTypicode.models.response;
 
-public class PostPostResponse {
+public class POST_PostResponse {
 
     private int id;
 
-    public PostPostResponse(){}
+    public POST_PostResponse(){}
 
-    public PostPostResponse(int id){
+    public POST_PostResponse(int id){
         this.id = id;
     }
 

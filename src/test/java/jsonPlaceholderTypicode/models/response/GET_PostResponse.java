@@ -1,15 +1,15 @@
 package jsonPlaceholderTypicode.models.response;
 
-public class GetPostResponse {
+public class GET_PostResponse {
 
     private int userId;
     private int id;
     private String title;
     private String body;
 
-    public GetPostResponse(){}
+    public GET_PostResponse(){}
 
-    public GetPostResponse(
+    public GET_PostResponse(
             int userId,
             int id,
             String title,

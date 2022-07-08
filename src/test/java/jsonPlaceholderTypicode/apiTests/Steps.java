@@ -7,10 +7,10 @@ import io.cucumber.java.Before;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import jsonPlaceholderTypicode.models.request.PostPostRequest;
-import jsonPlaceholderTypicode.models.response.GetPostCommentsResponse;
-import jsonPlaceholderTypicode.models.response.GetPostResponse;
-import jsonPlaceholderTypicode.models.response.PostPostResponse;
+import jsonPlaceholderTypicode.models.request.POST_PostRequest;
+import jsonPlaceholderTypicode.models.response.GET_PostCommentsResponse;
+import jsonPlaceholderTypicode.models.response.GET_PostResponse;
+import jsonPlaceholderTypicode.models.response.POST_PostResponse;
 import jsonPlaceholderTypicode.utils.StatusMessageBuilder;
 import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
@@ -107,7 +107,7 @@ public class Steps {
 
         String endpoint = baseUrl+"posts";
         String requestBody = objectWriter.
-                writeValueAsString(new PostPostRequest(1,"test Title", "test body", 2));
+                writeValueAsString(new POST_PostRequest(1,"test Title", "test body", 2));
         sendPostRequestSingleClient(endpoint, requestBody);
 
         statuses.add(new StatusMessageBuilder(stepName, response.statusCode(), endpoint));
@@ -120,56 +120,56 @@ public class Steps {
 
     @Then("Validate if total posts are {int}")
     public void validate_if_total_posts_are(Integer expectedTotal) throws JsonProcessingException {
-        GetPostResponse[] getPostResponses = objectMapper.readValue(response.body(),GetPostResponse[].class);
+        GET_PostResponse[] getPostResponses = objectMapper.readValue(response.body(), GET_PostResponse[].class);
         Assertions.assertEquals(expectedTotal, getPostResponses.length);
     }
 
     @Then("Validate if all post are sent by user {int}")
     public void validate_if_all_post_are_sent_by_user(Integer userId) throws JsonProcessingException {
-        GetPostResponse[] getPostResponse = objectMapper
-                .readValue(response.body(),GetPostResponse[].class);
+        GET_PostResponse[] getPostResponse = objectMapper
+                .readValue(response.body(), GET_PostResponse[].class);
         List<Integer> userIds = Arrays.stream(getPostResponse).map(post -> post.getUserId()).toList();
         Assertions.assertTrue(userIds.isEmpty() || (userIds.get(0).equals(userId) && userIds.stream().allMatch(userIds.get(0)::equals)));
     }
 
     @Then("Validate if total comments are {int}")
     public void validate_if_total_comments_are(Integer expectedTotal) throws JsonProcessingException {
-        GetPostCommentsResponse[] getPostCommentsResponse = objectMapper
-                .readValue(response.body(),GetPostCommentsResponse[].class);
+        GET_PostCommentsResponse[] getPostCommentsResponse = objectMapper
+                .readValue(response.body(), GET_PostCommentsResponse[].class);
         Assertions.assertEquals(expectedTotal, getPostCommentsResponse.length);
     }
 
 
     @Then("Validate if all post related fields are populated for single post GET request")
     public void validate_if_all_post_related_fields_are_populated_for_single_post_GET_request() throws JsonProcessingException {
-        validateIfAllGetPostFieldsArePopulated(objectMapper.readValue(response.body(), GetPostResponse.class));
+        validateIfAllGetPostFieldsArePopulated(objectMapper.readValue(response.body(), GET_PostResponse.class));
     }
 
     @Then("Validate if all post related fields are populated for multiple posts GET request")
     public void validate_if_all_post_related_fields_are_populated_for_multiple_posts_GET_request() throws JsonProcessingException {
-        GetPostResponse[] posts = objectMapper.readValue(response.body(),GetPostResponse[].class);
-        for(GetPostResponse post : posts)
+        GET_PostResponse[] posts = objectMapper.readValue(response.body(), GET_PostResponse[].class);
+        for(GET_PostResponse post : posts)
             validateIfAllGetPostFieldsArePopulated(post);
     }
 
     @Then("Validate if created post id is {int}")
     public void validate_if_created_post_id_is(Integer expectedId) throws JsonProcessingException {
-        PostPostResponse createdPostResponse = objectMapper.readValue(response.body(),PostPostResponse.class);
+        POST_PostResponse createdPostResponse = objectMapper.readValue(response.body(), POST_PostResponse.class);
         Assertions.assertEquals(expectedId, createdPostResponse.getId());
     }
 
     @Then("Validate if all comments related to post id {int}")
     public void validate_if_all_comments_related_to_post_id(Integer totalComments) throws JsonProcessingException {
-        GetPostCommentsResponse[] getPostCommentsResponse = objectMapper.
-                readValue(response.body(),GetPostCommentsResponse[].class);
+        GET_PostCommentsResponse[] getPostCommentsResponse = objectMapper.
+                readValue(response.body(), GET_PostCommentsResponse[].class);
         Assertions.assertEquals(totalComments, getPostCommentsResponse.length);
     }
 
     @Then("Validate if all comments are related to post id {int}")
     public void validate_if_all_comments_are_related_to_post_id(Integer postId) throws JsonProcessingException {
-        GetPostCommentsResponse[] getPostCommentsResponse = objectMapper.
-                readValue(response.body(),GetPostCommentsResponse[].class);
-        for(GetPostCommentsResponse comment : getPostCommentsResponse){
+        GET_PostCommentsResponse[] getPostCommentsResponse = objectMapper.
+                readValue(response.body(), GET_PostCommentsResponse[].class);
+        for(GET_PostCommentsResponse comment : getPostCommentsResponse){
             Assertions.assertEquals(postId, comment.getPostId());
         }
     }
@@ -192,7 +192,7 @@ public class Steps {
         response = client.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
-    private void validateIfAllGetPostFieldsArePopulated(GetPostResponse post){
+    private void validateIfAllGetPostFieldsArePopulated(GET_PostResponse post){
         Assert.assertNotNull(post.getUserId());
         Assert.assertNotNull(post.getId());
         Assert.assertNotNull(post.getTitle());

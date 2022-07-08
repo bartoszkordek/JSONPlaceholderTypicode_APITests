@@ -1,6 +1,6 @@
 package jsonPlaceholderTypicode.models.response;
 
-public class GetPostCommentsResponse {
+public class GET_PostCommentsResponse {
 
     private int postId;
     private int id;
@@ -8,9 +8,9 @@ public class GetPostCommentsResponse {
     private String email;
     private String body;
 
-    public GetPostCommentsResponse(){}
+    public GET_PostCommentsResponse(){}
 
-    public GetPostCommentsResponse(
+    public GET_PostCommentsResponse(
             int postId,
             int id,
             String name,

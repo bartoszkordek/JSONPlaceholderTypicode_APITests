@@ -1,16 +1,16 @@
 package jsonPlaceholderTypicode.models.request;
 
-public class PostPostRequest {
+public class POST_PostRequest {
 
     private int id;
     private String title;
     private String body;
     private int userId;
 
-    public PostPostRequest(){}
+    public POST_PostRequest(){}
 
 
-    public PostPostRequest(
+    public POST_PostRequest(
             int id,
             String title,
             String body,
