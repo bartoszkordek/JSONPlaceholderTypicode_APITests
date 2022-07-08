@@ -1,10 +1,10 @@
 package jsonPlaceholderTypicode.models.request;
 
-public class POST_PostRequest extends PostRequest{
+public class PUT_PostRequest extends PostRequest{
 
-    public POST_PostRequest(){}
+    public PUT_PostRequest(){}
 
-    public POST_PostRequest(
+    public PUT_PostRequest(
             int id,
             String title,
             String body,

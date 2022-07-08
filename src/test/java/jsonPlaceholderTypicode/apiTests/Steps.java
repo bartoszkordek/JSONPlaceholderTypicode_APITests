@@ -8,9 +8,11 @@ import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import jsonPlaceholderTypicode.models.request.POST_PostRequest;
+import jsonPlaceholderTypicode.models.request.PUT_PostRequest;
 import jsonPlaceholderTypicode.models.response.GET_PostCommentsResponse;
 import jsonPlaceholderTypicode.models.response.GET_PostResponse;
 import jsonPlaceholderTypicode.models.response.POST_PostResponse;
+import jsonPlaceholderTypicode.models.response.PUT_PostResponse;
 import jsonPlaceholderTypicode.utils.StatusMessageBuilder;
 import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
@@ -113,6 +115,19 @@ public class Steps {
         statuses.add(new StatusMessageBuilder(stepName, response.statusCode(), endpoint));
     }
 
+    @When("Update post id {int}")
+    public void update_post_id(Integer postId) throws IOException, InterruptedException {
+        Method callingMethod = new Object() {} .getClass() .getEnclosingMethod();
+        Annotation stepName = callingMethod.getAnnotations()[0];
+
+        String endpoint = baseUrl+"posts/"+postId;
+        String requestBody = objectWriter.
+                writeValueAsString(new PUT_PostRequest(postId,"test Title", "test body", 2));
+        sendPutRequestSingleClient(endpoint, requestBody);
+
+        statuses.add(new StatusMessageBuilder(stepName, response.statusCode(), endpoint));
+    }
+
     @Then("Validate that response code is {int}")
     public void validate_that_response_code_is(Integer expectedResponseCode) {
         Assertions.assertEquals(expectedResponseCode, response.statusCode());
@@ -158,6 +173,16 @@ public class Steps {
         Assertions.assertEquals(expectedId, createdPostResponse.getId());
     }
 
+    @Then("Validate that put response body is correct for post id {int}")
+    public void validate_that_put_response_body_is_correct_for_post_id(Integer postId) throws JsonProcessingException {
+        PUT_PostResponse updatedPostResponse = objectMapper.readValue(response.body(), PUT_PostResponse.class);
+        validateIfAllPutPostFieldsArePopulated(updatedPostResponse);
+        Assertions.assertEquals(postId, updatedPostResponse.getId());
+        Assertions.assertEquals("test Title", updatedPostResponse.getTitle());
+        Assertions.assertEquals("test body", updatedPostResponse.getBody());
+        Assertions.assertEquals(2, updatedPostResponse.getUserId());
+    }
+
     @Then("Validate if all comments related to post id {int}")
     public void validate_if_all_comments_related_to_post_id(Integer totalComments) throws JsonProcessingException {
         GET_PostCommentsResponse[] getPostCommentsResponse = objectMapper.
@@ -192,7 +217,24 @@ public class Steps {
         response = client.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
+    private void sendPutRequestSingleClient(String endpoint, String body) throws IOException, InterruptedException {
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(endpoint))
+                .PUT(HttpRequest.BodyPublishers.ofString(body))
+                .header("Content-type", "application/json; charset=UTF-8")
+                .build();
+        response = client.send(request, HttpResponse.BodyHandlers.ofString());
+    }
+
     private void validateIfAllGetPostFieldsArePopulated(GET_PostResponse post){
+        Assert.assertNotNull(post.getUserId());
+        Assert.assertNotNull(post.getId());
+        Assert.assertNotNull(post.getTitle());
+        Assert.assertNotNull(post.getBody());
+    }
+
+    private void validateIfAllPutPostFieldsArePopulated(PUT_PostResponse post){
         Assert.assertNotNull(post.getUserId());
         Assert.assertNotNull(post.getId());
         Assert.assertNotNull(post.getTitle());
