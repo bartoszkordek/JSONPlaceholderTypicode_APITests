@@ -7,12 +7,10 @@ import io.cucumber.java.Before;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import jsonPlaceholderTypicode.enums.RequestMethod;
 import jsonPlaceholderTypicode.models.request.POST_PostRequest;
 import jsonPlaceholderTypicode.models.request.PUT_PostRequest;
-import jsonPlaceholderTypicode.models.response.GET_PostCommentsResponse;
-import jsonPlaceholderTypicode.models.response.GET_PostResponse;
-import jsonPlaceholderTypicode.models.response.POST_PostResponse;
-import jsonPlaceholderTypicode.models.response.PUT_PostResponse;
+import jsonPlaceholderTypicode.models.response.*;
 import jsonPlaceholderTypicode.utils.StatusMessageBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
@@ -33,6 +31,7 @@ public class Steps {
     private ObjectWriter objectWriter;
 
     private String baseUrl;
+    private HttpResponse<String> responseBeforeUpdate;
     private HttpResponse<String> response;
     private List<StatusMessageBuilder> statuses;
 
@@ -129,6 +128,22 @@ public class Steps {
         statuses.add(new StatusMessageBuilder(stepName, response.statusCode(), endpoint));
     }
 
+    @When("Update title to {string} for post id {int}")
+    public void update_title_to_for_post_id(String title, Integer postId) throws IOException, InterruptedException {
+        Method callingMethod = new Object() {} .getClass() .getEnclosingMethod();
+        Annotation stepName = callingMethod.getAnnotations()[0];
+
+        responseBeforeUpdate = response;
+
+        String endpoint = baseUrl+"posts/"+postId;
+        Map<String, String> requestBodyAttributes = new HashMap<>();
+        requestBodyAttributes.put("title", title);
+        String requestBody = objectMapper.writeValueAsString(requestBodyAttributes);
+        sendPatchRequestSingleClient(endpoint, requestBody);
+
+        statuses.add(new StatusMessageBuilder(stepName, response.statusCode(), endpoint));
+    }
+
     @Then("Validate that response code is {int}")
     public void validate_that_response_code_is(Integer expectedResponseCode) {
         Assertions.assertEquals(expectedResponseCode, response.statusCode());
@@ -184,6 +199,25 @@ public class Steps {
         Assertions.assertEquals(2, updatedPostResponse.getUserId());
     }
 
+    @Then("Validate that patch response body is correct for post id {int}")
+    public void validate_that_patch_response_body_is_correct_for_post_id(Integer postId) throws JsonProcessingException {
+        PATCH_PostResponse patchedUpdatedPostResponse = objectMapper.readValue(response.body(), PATCH_PostResponse.class);
+        validateIfAllPatchPostFieldsArePopulated(patchedUpdatedPostResponse);
+        Assertions.assertEquals(postId, patchedUpdatedPostResponse.getId());
+        //Assertions.assertEquals();
+    }
+
+    @Then("Validate that patch response body is correct for post id {int} and updated title {string}")
+    public void validate_that_patch_response_body_is_correct_for_post_id_and_updated_title(Integer postId, String title) throws JsonProcessingException {
+        GET_PostResponse beforeUpdatePostResponse = objectMapper.readValue(responseBeforeUpdate.body(), GET_PostResponse.class);
+        PATCH_PostResponse patchedUpdatedPostResponse = objectMapper.readValue(response.body(), PATCH_PostResponse.class);
+        validateIfAllPatchPostFieldsArePopulated(patchedUpdatedPostResponse);
+        Assertions.assertEquals(postId, patchedUpdatedPostResponse.getId());
+        Assertions.assertEquals(title, patchedUpdatedPostResponse.getTitle());
+        Assertions.assertEquals(beforeUpdatePostResponse.getBody(), patchedUpdatedPostResponse.getBody());
+        Assertions.assertEquals(beforeUpdatePostResponse.getUserId(), patchedUpdatedPostResponse.getUserId());
+    }
+
     @Then("Validate if all comments related to post id {int}")
     public void validate_if_all_comments_related_to_post_id(Integer totalComments) throws JsonProcessingException {
         GET_PostCommentsResponse[] getPostCommentsResponse = objectMapper.
@@ -228,6 +262,16 @@ public class Steps {
         response = client.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
+    private void sendPatchRequestSingleClient(String endpoint, String body) throws IOException, InterruptedException {
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(endpoint))
+                .method(RequestMethod.PATCH.name(), HttpRequest.BodyPublishers.ofString(body))
+                .header("Content-type", "application/json; charset=UTF-8")
+                .build();
+        response = client.send(request, HttpResponse.BodyHandlers.ofString());
+    }
+
     private void validateIfAllGetPostFieldsArePopulated(@NotNull GET_PostResponse post){
         Assert.assertNotNull(post.getUserId());
         Assert.assertNotNull(post.getId());
@@ -236,6 +280,13 @@ public class Steps {
     }
 
     private void validateIfAllPutPostFieldsArePopulated(@NotNull PUT_PostResponse post){
+        Assert.assertNotNull(post.getUserId());
+        Assert.assertNotNull(post.getId());
+        Assert.assertNotNull(post.getTitle());
+        Assert.assertNotNull(post.getBody());
+    }
+
+    private void validateIfAllPatchPostFieldsArePopulated(@NotNull PATCH_PostResponse post){
         Assert.assertNotNull(post.getUserId());
         Assert.assertNotNull(post.getId());
         Assert.assertNotNull(post.getTitle());

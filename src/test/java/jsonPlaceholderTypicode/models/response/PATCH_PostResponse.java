@@ -1,15 +1,15 @@
 package jsonPlaceholderTypicode.models.response;
 
-public class PUT_PostResponse {
+public class PATCH_PostResponse {
 
     private int id;
     private String title;
     private String body;
     private int userId;
 
-    public PUT_PostResponse(){}
+    public PATCH_PostResponse(){}
 
-    public PUT_PostResponse(
+    public PATCH_PostResponse(
             int userId,
             int id,
             String title,
