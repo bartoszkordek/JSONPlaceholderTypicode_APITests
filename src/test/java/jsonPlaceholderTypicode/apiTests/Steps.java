@@ -204,7 +204,6 @@ public class Steps {
         PATCH_PostResponse patchedUpdatedPostResponse = objectMapper.readValue(response.body(), PATCH_PostResponse.class);
         validateIfAllPatchPostFieldsArePopulated(patchedUpdatedPostResponse);
         Assertions.assertEquals(postId, patchedUpdatedPostResponse.getId());
-        //Assertions.assertEquals();
     }
 
     @Then("Validate that patch response body is correct for post id {int} and updated title {string}")
