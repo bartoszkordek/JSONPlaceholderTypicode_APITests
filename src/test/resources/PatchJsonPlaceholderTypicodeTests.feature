@@ -9,3 +9,10 @@ Feature: Automation tests of PATCH requests of jsonplaceholder.typicode.com (htt
     When Update title to "Updated Title" for post id 1
     Then Validate that response code is 200
     And Validate that patch response body is correct for post id 1 and updated title "Updated Title"
+
+  @APITest @Patch @SingleClient
+  Scenario: Validate if only post body was updated single client
+    Given Get a post id 1
+    When Update body to "Updated Body" for post id 1
+    Then Validate that response code is 200
+    And Validate that patch response body is correct for post id 1 and updated body "Updated Body"

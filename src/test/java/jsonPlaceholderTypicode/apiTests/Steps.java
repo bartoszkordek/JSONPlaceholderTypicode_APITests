@@ -144,6 +144,22 @@ public class Steps {
         statuses.add(new StatusMessageBuilder(stepName, response.statusCode(), endpoint));
     }
 
+    @When("Update body to {string} for post id {int}")
+    public void update_body_to_for_post_id(String body, Integer postId) throws IOException, InterruptedException {
+        Method callingMethod = new Object() {} .getClass() .getEnclosingMethod();
+        Annotation stepName = callingMethod.getAnnotations()[0];
+
+        responseBeforeUpdate = response;
+
+        String endpoint = baseUrl+"posts/"+postId;
+        Map<String, String> requestBodyAttributes = new HashMap<>();
+        requestBodyAttributes.put("body", body);
+        String requestBody = objectMapper.writeValueAsString(requestBodyAttributes);
+        sendPatchRequestSingleClient(endpoint, requestBody);
+
+        statuses.add(new StatusMessageBuilder(stepName, response.statusCode(), endpoint));
+    }
+
     @Then("Validate that response code is {int}")
     public void validate_that_response_code_is(Integer expectedResponseCode) {
         Assertions.assertEquals(expectedResponseCode, response.statusCode());
@@ -214,6 +230,17 @@ public class Steps {
         Assertions.assertEquals(postId, patchedUpdatedPostResponse.getId());
         Assertions.assertEquals(title, patchedUpdatedPostResponse.getTitle());
         Assertions.assertEquals(beforeUpdatePostResponse.getBody(), patchedUpdatedPostResponse.getBody());
+        Assertions.assertEquals(beforeUpdatePostResponse.getUserId(), patchedUpdatedPostResponse.getUserId());
+    }
+
+    @Then("Validate that patch response body is correct for post id {int} and updated body {string}")
+    public void validate_that_patch_response_body_is_correct_for_post_id_and_updated_body(Integer postId, String body) throws JsonProcessingException {
+        GET_PostResponse beforeUpdatePostResponse = objectMapper.readValue(responseBeforeUpdate.body(), GET_PostResponse.class);
+        PATCH_PostResponse patchedUpdatedPostResponse = objectMapper.readValue(response.body(), PATCH_PostResponse.class);
+        validateIfAllPatchPostFieldsArePopulated(patchedUpdatedPostResponse);
+        Assertions.assertEquals(postId, patchedUpdatedPostResponse.getId());
+        Assertions.assertEquals(body, patchedUpdatedPostResponse.getBody());
+        Assertions.assertEquals(beforeUpdatePostResponse.getTitle(), patchedUpdatedPostResponse.getTitle());
         Assertions.assertEquals(beforeUpdatePostResponse.getUserId(), patchedUpdatedPostResponse.getUserId());
     }
 
