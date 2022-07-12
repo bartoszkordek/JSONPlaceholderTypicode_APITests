@@ -160,6 +160,17 @@ public class Steps {
         statuses.add(new StatusMessageBuilder(stepName, response.statusCode(), endpoint));
     }
 
+    @When("Delete post id {int}")
+    public void delete_post_id(Integer userId) throws IOException, InterruptedException {
+        Method callingMethod = new Object() {} .getClass() .getEnclosingMethod();
+        Annotation stepName = callingMethod.getAnnotations()[0];
+
+        String endpoint = baseUrl+"posts/"+userId;
+        sendDeleteRequestSingleClient(endpoint);
+
+        statuses.add(new StatusMessageBuilder(stepName, response.statusCode(), endpoint));
+    }
+
     @Then("Validate that response code is {int}")
     public void validate_that_response_code_is(Integer expectedResponseCode) {
         Assertions.assertEquals(expectedResponseCode, response.statusCode());
@@ -294,6 +305,15 @@ public class Steps {
                 .uri(URI.create(endpoint))
                 .method(RequestMethod.PATCH.name(), HttpRequest.BodyPublishers.ofString(body))
                 .header("Content-type", "application/json; charset=UTF-8")
+                .build();
+        response = client.send(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    private void sendDeleteRequestSingleClient(String endpoint) throws IOException, InterruptedException {
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(endpoint))
+                .DELETE()
                 .build();
         response = client.send(request, HttpResponse.BodyHandlers.ofString());
     }
