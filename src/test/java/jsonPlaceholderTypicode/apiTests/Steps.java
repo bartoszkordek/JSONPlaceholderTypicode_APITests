@@ -114,13 +114,13 @@ public class Steps {
 
     @When("Get {int} random posts single client")
     public void get_random_posts_single_client(Integer requests) {
-        List<String> endpoints = createRandomGetPostEndpoints(requests);
+        List<String> endpoints = createRandomPostEndpoints(requests);
         sendGetRequestSingleClientMultipleEndpoints(endpoints);
     }
 
     @When("Get {int} random posts multiple clients")
     public void get_random_posts_multiple_clients(Integer requests) {
-        List<String> endpoints = createRandomGetPostEndpoints(requests);
+        List<String> endpoints = createRandomPostEndpoints(requests);
         sendGetRequestMultipleClientsMultipleEndpoints(endpoints);
     }
 
@@ -191,6 +191,12 @@ public class Steps {
         sendDeleteRequestSingleClient(endpoint);
 
         statuses.add(new StatusMessageBuilder(stepName, response.statusCode(), endpoint));
+    }
+
+    @When("Delete {int} random posts single client")
+    public void delete_random_posts_single_client(Integer requests) {
+        List<String> endpoints = createRandomPostEndpoints(requests);
+        sendDeleteRequestSingleClientMultipleEndpoints(endpoints);
     }
 
     @Then("Validate that response code is {int}")
@@ -394,6 +400,20 @@ public class Steps {
         response = client.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
+    private void sendDeleteRequestSingleClientMultipleEndpoints(@NotNull List<String> endpoints) {
+        HttpClient client = HttpClient.newHttpClient();
+        List<URI> targets = endpoints.stream().map( endpoint -> URI.create(endpoint)).toList();
+        asyncResponses = targets.stream()
+                .map(target -> client
+                        .sendAsync(
+                                HttpRequest.newBuilder(target)
+                                        .DELETE()
+                                        .build(),
+                                HttpResponse.BodyHandlers.ofString())
+                )
+                .toList();
+    }
+
     private void validateIfAllGetPostFieldsArePopulated(@NotNull GET_PostResponse post){
         Assert.assertNotNull(post.getUserId());
         Assert.assertNotNull(post.getId());
@@ -415,7 +435,7 @@ public class Steps {
         Assert.assertNotNull(post.getBody());
     }
 
-    private List<String> createRandomGetPostEndpoints(int requests){
+    private List<String> createRandomPostEndpoints(int requests){
         Random random = new Random();
         List<String> endpoints = new ArrayList<>();
         for(int i=0; i<requests; i++){
