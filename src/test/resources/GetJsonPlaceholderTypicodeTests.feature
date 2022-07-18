@@ -35,3 +35,8 @@ Feature: Automation tests of GET requests of jsonplaceholder.typicode.com (https
     When Get all comments sent by email "Nikita@garfield.biz"
     Then Validate that response code is 200
     And Validate if total comments are 1
+
+  @APITest @Get @MultipleEndpoints @SingleClient
+  Scenario: Validate if specific posts are displayed (multiple endpoints) single client
+    When Get 10 random posts single client
+    Then Validate that response codes are 200

@@ -24,6 +24,11 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 
 public class Steps {
 
@@ -33,12 +38,16 @@ public class Steps {
     private String baseUrl;
     private HttpResponse<String> responseBeforeUpdate;
     private HttpResponse<String> response;
+    private List<CompletableFuture<HttpResponse<String>>> asyncResponses;
     private List<StatusMessageBuilder> statuses;
+
+    private int DEFAULT_TIMEOUT_SEC = 5;
 
     @Before
     public void setUp(){
         objectMapper = new ObjectMapper();
         objectWriter = new ObjectMapper().writer().withDefaultPrettyPrinter();
+        asyncResponses = new ArrayList<>();
         statuses = new ArrayList<>();
     }
 
@@ -101,6 +110,19 @@ public class Steps {
 
         statuses.add(new StatusMessageBuilder(stepName, response.statusCode(), endpoint));
     }
+
+    @When("Get {int} random posts single client")
+    public void get_random_posts_single_client(Integer posts) {
+        Random random = new Random();
+        List<String> endpoints = new ArrayList<>();
+        for(int i=0; i<posts; i++){
+            int postId = random.nextInt(100) + 1;
+            String endpoint = baseUrl+"posts/"+postId;
+            endpoints.add(endpoint);
+        }
+        sendGetRequestSingleClientMultipleEndpoints(endpoints);
+    }
+
 
     @When("Create post")
     public void create_post() throws IOException, InterruptedException {
@@ -175,6 +197,32 @@ public class Steps {
     public void validate_that_response_code_is(Integer expectedResponseCode) {
         Assertions.assertEquals(expectedResponseCode, response.statusCode());
     }
+
+    @Then("Validate that response codes are {int}")
+    public void validate_that_response_codes_are(Integer expectedResponseCode) {
+       List<Integer> responseCodes = asyncResponses.stream()
+               .map(res -> {
+                   try {
+                       return res.get(DEFAULT_TIMEOUT_SEC, TimeUnit.SECONDS).statusCode();
+                   } catch (InterruptedException e) {
+                       e.printStackTrace();
+                   } catch (ExecutionException e) {
+                       e.printStackTrace();
+                   } catch (TimeoutException e) {
+                       e.printStackTrace();
+                   }
+                   return null;
+               })
+               .toList();
+
+        Assertions.assertTrue(
+                responseCodes.isEmpty() ||
+                        (responseCodes.get(0).equals(expectedResponseCode)
+                                && responseCodes.stream().allMatch(responseCodes.get(0)::equals)
+                        )
+        );
+    }
+
 
     @Then("Validate if total posts are {int}")
     public void validate_if_total_posts_are(Integer expectedTotal) throws JsonProcessingException {
@@ -278,6 +326,20 @@ public class Steps {
                 .GET()
                 .build();
         response = client.send(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    private void sendGetRequestSingleClientMultipleEndpoints(@NotNull List<String> endpoints) {
+        HttpClient client = HttpClient.newHttpClient();
+        List<URI> targets = endpoints.stream().map( endpoint -> URI.create(endpoint)).toList();
+        asyncResponses = targets.stream()
+                .map(target -> client
+                        .sendAsync(
+                                HttpRequest.newBuilder(target)
+                                        .GET()
+                                        .build(),
+                                HttpResponse.BodyHandlers.ofString())
+                        )
+                .toList();
     }
 
     private void sendPostRequestSingleClient(String endpoint, String body) throws IOException, InterruptedException {
