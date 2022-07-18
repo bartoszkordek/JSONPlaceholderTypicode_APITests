@@ -25,6 +25,7 @@
                         <include>*.TestPostRunner</include>
                         <include>*.TestPutRunner</include>
                         <include>*.TestPatchRunner</include>
+                        <include>*.TestDeleteRunner</include>
                     </includes>
                     <parallel>suites</parallel>
                     <threadCountSuites>4</threadCountSuites>
