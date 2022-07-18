@@ -3,6 +3,7 @@ package jsonPlaceholderTypicode.apiTests;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -41,7 +42,7 @@ public class Steps {
     private List<CompletableFuture<HttpResponse<String>>> asyncResponses;
     private List<StatusMessageBuilder> statuses;
 
-    private int DEFAULT_TIMEOUT_SEC = 5;
+    private final int DEFAULT_TIMEOUT_SEC = 5;
 
     @Before
     public void setUp(){
@@ -204,11 +205,7 @@ public class Steps {
                .map(res -> {
                    try {
                        return res.get(DEFAULT_TIMEOUT_SEC, TimeUnit.SECONDS).statusCode();
-                   } catch (InterruptedException e) {
-                       e.printStackTrace();
-                   } catch (ExecutionException e) {
-                       e.printStackTrace();
-                   } catch (TimeoutException e) {
+                   } catch (InterruptedException | ExecutionException | TimeoutException e) {
                        e.printStackTrace();
                    }
                    return null;
@@ -317,6 +314,12 @@ public class Steps {
         for(GET_PostCommentsResponse comment : getPostCommentsResponse){
             Assertions.assertEquals(postId, comment.getPostId());
         }
+    }
+
+    @After
+    public void cleanUp(){
+        asyncResponses = null;
+        statuses = null;
     }
 
     private void sendGetRequestSingleClient(String endpoint) throws IOException, InterruptedException {
