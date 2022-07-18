@@ -113,17 +113,16 @@ public class Steps {
     }
 
     @When("Get {int} random posts single client")
-    public void get_random_posts_single_client(Integer posts) {
-        Random random = new Random();
-        List<String> endpoints = new ArrayList<>();
-        for(int i=0; i<posts; i++){
-            int postId = random.nextInt(100) + 1;
-            String endpoint = baseUrl+"posts/"+postId;
-            endpoints.add(endpoint);
-        }
+    public void get_random_posts_single_client(Integer requests) {
+        List<String> endpoints = createRandomGetPostEndpoints(requests);
         sendGetRequestSingleClientMultipleEndpoints(endpoints);
     }
 
+    @When("Get {int} random posts multiple clients")
+    public void get_random_posts_multiple_clients(Integer requests) {
+        List<String> endpoints = createRandomGetPostEndpoints(requests);
+        sendGetRequestMultipleClientsMultipleEndpoints(endpoints);
+    }
 
     @When("Create post")
     public void create_post() throws IOException, InterruptedException {
@@ -219,7 +218,6 @@ public class Steps {
                         )
         );
     }
-
 
     @Then("Validate if total posts are {int}")
     public void validate_if_total_posts_are(Integer expectedTotal) throws JsonProcessingException {
@@ -345,6 +343,19 @@ public class Steps {
                 .toList();
     }
 
+    private void sendGetRequestMultipleClientsMultipleEndpoints(@NotNull List<String> endpoints) {
+        List<URI> targets = endpoints.stream().map( endpoint -> URI.create(endpoint)).toList();
+        asyncResponses = targets.stream()
+                .map(target -> HttpClient.newHttpClient()
+                        .sendAsync(
+                                HttpRequest.newBuilder(target)
+                                        .GET()
+                                        .build(),
+                                HttpResponse.BodyHandlers.ofString())
+                )
+                .toList();
+    }
+
     private void sendPostRequestSingleClient(String endpoint, String body) throws IOException, InterruptedException {
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
@@ -402,6 +413,17 @@ public class Steps {
         Assert.assertNotNull(post.getId());
         Assert.assertNotNull(post.getTitle());
         Assert.assertNotNull(post.getBody());
+    }
+
+    private List<String> createRandomGetPostEndpoints(int requests){
+        Random random = new Random();
+        List<String> endpoints = new ArrayList<>();
+        for(int i=0; i<requests; i++){
+            int postId = random.nextInt(100) + 1;
+            String endpoint = baseUrl+"posts/"+postId;
+            endpoints.add(endpoint);
+        }
+        return endpoints;
     }
 
 }

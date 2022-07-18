@@ -40,3 +40,8 @@ Feature: Automation tests of GET requests of jsonplaceholder.typicode.com (https
   Scenario: Validate if specific posts are displayed (multiple endpoints) single client
     When Get 10 random posts single client
     Then Validate that response codes are 200
+
+  @APITest @Get @MultipleEndpoints @MultipleClients
+  Scenario: Validate if specific posts are displayed (multiple endpoints) multiple clients
+    When Get 10 random posts multiple clients
+    Then Validate that response codes are 200
