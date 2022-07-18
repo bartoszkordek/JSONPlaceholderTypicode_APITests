@@ -3,7 +3,7 @@ Feature: Automation tests of POST requests of jsonplaceholder.typicode.com (http
   Background:
     Given Base url is "https://jsonplaceholder.typicode.com/"
 
-  @APITest @Post @SingleClient
+  @APITest @Post @SingleEndpoint @SingleClient
   Scenario: Validate if post was created single client
     When Create post
     Then Validate that response code is 201
