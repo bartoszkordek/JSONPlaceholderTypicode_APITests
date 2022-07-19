@@ -257,7 +257,9 @@ public class Steps {
         GET_PostResponse[] getPostResponse = objectMapper
                 .readValue(response.body(), GET_PostResponse[].class);
         List<Integer> userIds = Arrays.stream(getPostResponse).map(post -> post.getUserId()).toList();
-        Assertions.assertTrue(userIds.isEmpty() || (userIds.get(0).equals(userId) && userIds.stream().allMatch(userIds.get(0)::equals)));
+        Assertions.assertTrue(userIds.isEmpty() ||
+                (userIds.get(0).equals(userId) && userIds.stream().allMatch(userIds.get(0)::equals))
+        );
     }
 
     @Then("Validate if total comments are {int}")
@@ -269,12 +271,14 @@ public class Steps {
 
 
     @Then("Validate if all post related fields are populated for single post GET request")
-    public void validate_if_all_post_related_fields_are_populated_for_single_post_GET_request() throws JsonProcessingException {
+    public void validate_if_all_post_related_fields_are_populated_for_single_post_GET_request()
+            throws JsonProcessingException {
         validateIfAllGetPostFieldsArePopulated(objectMapper.readValue(response.body(), GET_PostResponse.class));
     }
 
     @Then("Validate if all post related fields are populated for multiple posts GET request")
-    public void validate_if_all_post_related_fields_are_populated_for_multiple_posts_GET_request() throws JsonProcessingException {
+    public void validate_if_all_post_related_fields_are_populated_for_multiple_posts_GET_request()
+            throws JsonProcessingException {
         GET_PostResponse[] posts = objectMapper.readValue(response.body(), GET_PostResponse[].class);
         for(GET_PostResponse post : posts)
             validateIfAllGetPostFieldsArePopulated(post);
@@ -304,7 +308,9 @@ public class Steps {
     }
 
     @Then("Validate that patch response body is correct for post id {int} and updated title {string}")
-    public void validate_that_patch_response_body_is_correct_for_post_id_and_updated_title(Integer postId, String title) throws JsonProcessingException {
+    public void validate_that_patch_response_body_is_correct_for_post_id_and_updated_title(Integer postId, String title)
+            throws JsonProcessingException {
+
         GET_PostResponse beforeUpdatePostResponse = objectMapper.readValue(responseBeforeUpdate.body(), GET_PostResponse.class);
         PATCH_PostResponse patchedUpdatedPostResponse = objectMapper.readValue(response.body(), PATCH_PostResponse.class);
         validateIfAllPatchPostFieldsArePopulated(patchedUpdatedPostResponse);
@@ -315,14 +321,12 @@ public class Steps {
     }
 
     @Then("Validate that patch response body is correct for post id {int} and updated body {string}")
-    public void validate_that_patch_response_body_is_correct_for_post_id_and_updated_body(Integer postId, String body) throws JsonProcessingException {
+    public void validate_that_patch_response_body_is_correct_for_post_id_and_updated_body(Integer postId, String body)
+            throws JsonProcessingException {
+
         GET_PostResponse beforeUpdatePostResponse = objectMapper.readValue(responseBeforeUpdate.body(), GET_PostResponse.class);
-        PATCH_PostResponse patchedUpdatedPostResponse = objectMapper.readValue(response.body(), PATCH_PostResponse.class);
-        validateIfAllPatchPostFieldsArePopulated(patchedUpdatedPostResponse);
-        Assertions.assertEquals(postId, patchedUpdatedPostResponse.getId());
-        Assertions.assertEquals(body, patchedUpdatedPostResponse.getBody());
-        Assertions.assertEquals(beforeUpdatePostResponse.getTitle(), patchedUpdatedPostResponse.getTitle());
-        Assertions.assertEquals(beforeUpdatePostResponse.getUserId(), patchedUpdatedPostResponse.getUserId());
+        PATCH_PostResponse patchUpdatedPostResponse = objectMapper.readValue(response.body(), PATCH_PostResponse.class);
+        validatePatchBodyResponseForBodyUpdate(postId, body, beforeUpdatePostResponse, patchUpdatedPostResponse);
     }
 
     @Then("Validate that patch response bodies are correct for all updated posts and updated body is {string}")
@@ -337,13 +341,15 @@ public class Steps {
         for(int i=0; i<asyncResponses.size(); i++){
             beforeUpdateResponses.add(
                     objectMapper.readValue(
-                    asyncResponsesBeforeUpdate.get(i).thenApply(res -> res.body()).get(DEFAULT_TIMEOUT_SEC, TimeUnit.SECONDS),
-                    GET_PostResponse.class)
+                    asyncResponsesBeforeUpdate.get(i)
+                            .thenApply(res -> res.body())
+                            .get(DEFAULT_TIMEOUT_SEC, TimeUnit.SECONDS), GET_PostResponse.class)
             );
             afterUpdateResponses.add(
                     objectMapper.readValue(
-                            asyncResponses.get(i).thenApply(res -> res.body()).get(DEFAULT_TIMEOUT_SEC, TimeUnit.SECONDS),
-                            PATCH_PostResponse.class)
+                            asyncResponses.get(i)
+                                    .thenApply(res -> res.body())
+                                    .get(DEFAULT_TIMEOUT_SEC, TimeUnit.SECONDS), PATCH_PostResponse.class)
             );
         }
 
@@ -352,11 +358,12 @@ public class Steps {
 
 
         for(int i=0; i<asyncResponses.size(); i++){
-            validateIfAllPatchPostFieldsArePopulated(afterUpdateResponses.get(i));
-            Assertions.assertEquals(beforeUpdateResponses.get(i).getId(), afterUpdateResponses.get(i).getId());
-            Assertions.assertEquals(beforeUpdateResponses.get(i).getUserId(), afterUpdateResponses.get(i).getUserId());
-            Assertions.assertEquals(beforeUpdateResponses.get(i).getTitle(), afterUpdateResponses.get(i).getTitle());
-            Assertions.assertEquals(body, afterUpdateResponses.get(i).getBody());
+            validatePatchBodyResponseForBodyUpdate(
+                    afterUpdateResponses.get(i).getId(),
+                    body,
+                    beforeUpdateResponses.get(i),
+                    afterUpdateResponses.get(i)
+            );
         }
 
     }
@@ -506,6 +513,19 @@ public class Steps {
         Assert.assertNotNull(post.getId());
         Assert.assertNotNull(post.getTitle());
         Assert.assertNotNull(post.getBody());
+    }
+
+    private void validatePatchBodyResponseForBodyUpdate(
+            int postId,
+            String expectedBody,
+            GET_PostResponse beforeUpdatePostResponse,
+            PATCH_PostResponse patchUpdatedPostResponse){
+
+        validateIfAllPatchPostFieldsArePopulated(patchUpdatedPostResponse);
+        Assertions.assertEquals(postId, patchUpdatedPostResponse.getId());
+        Assertions.assertEquals(expectedBody, patchUpdatedPostResponse.getBody());
+        Assertions.assertEquals(beforeUpdatePostResponse.getTitle(), patchUpdatedPostResponse.getTitle());
+        Assertions.assertEquals(beforeUpdatePostResponse.getUserId(), patchUpdatedPostResponse.getUserId());
     }
 
     private List<String> createRandomPostEndpoints(int requests){
