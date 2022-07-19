@@ -17,4 +17,11 @@ public class POST_PostResponse {
     public void setId(int id) {
         this.id = id;
     }
+
+    @Override
+    public String toString() {
+        return "POST_PostResponse{" +
+                "id=" + id +
+                '}';
+    }
 }

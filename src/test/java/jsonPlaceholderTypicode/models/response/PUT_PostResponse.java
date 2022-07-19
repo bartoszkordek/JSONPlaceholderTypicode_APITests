@@ -52,4 +52,14 @@ public class PUT_PostResponse {
     public void setUserId(int userId) {
         this.userId = userId;
     }
+
+    @Override
+    public String toString() {
+        return "PUT_PostResponse{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", body='" + body + '\'' +
+                ", userId=" + userId +
+                '}';
+    }
 }
