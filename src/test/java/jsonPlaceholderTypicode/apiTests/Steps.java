@@ -44,6 +44,8 @@ public class Steps {
     private List<StatusMessageBuilder> statuses;
 
     private final int DEFAULT_TIMEOUT_SEC = 5;
+    private long startExecutionTime;
+    private long endExecutionTime;
 
     @Before
     public void setUp(){
@@ -384,6 +386,11 @@ public class Steps {
         }
     }
 
+    @Then("Execution time should be less than {int} milliseconds")
+    public void execution_time_should_be_less_than_milliseconds(Integer maxExecutionTime) {
+        Assertions.assertTrue((endExecutionTime-startExecutionTime) < maxExecutionTime);
+    }
+
     @After
     public void cleanUp(){
         asyncResponsesBeforeUpdate = null;
@@ -393,11 +400,13 @@ public class Steps {
 
     private void sendGetRequestSingleClient(String endpoint) throws IOException, InterruptedException {
         HttpClient client = HttpClient.newHttpClient();
+        startExecutionTime = System.currentTimeMillis();
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(endpoint))
                 .GET()
                 .build();
         response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        endExecutionTime = System.currentTimeMillis();
     }
 
     private void sendGetRequestSingleClientMultipleEndpoints(@NotNull List<String> endpoints) {

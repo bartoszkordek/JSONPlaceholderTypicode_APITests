@@ -9,6 +9,7 @@ Feature: Automation tests of GET requests of jsonplaceholder.typicode.com (https
     Then Validate that response code is 200
     And Validate if total posts are 100
     And Validate if all post related fields are populated for multiple posts GET request
+    And Execution time should be less than 1000 milliseconds
 
   @APITest @Get @SingleEndpoint @SingleClient
   Scenario: Validate if specific post is displayed single client
