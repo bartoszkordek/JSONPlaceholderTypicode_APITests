@@ -352,6 +352,7 @@ public class Steps {
 
 
         for(int i=0; i<asyncResponses.size(); i++){
+            validateIfAllPatchPostFieldsArePopulated(afterUpdateResponses.get(i));
             Assertions.assertEquals(beforeUpdateResponses.get(i).getId(), afterUpdateResponses.get(i).getId());
             Assertions.assertEquals(beforeUpdateResponses.get(i).getUserId(), afterUpdateResponses.get(i).getUserId());
             Assertions.assertEquals(beforeUpdateResponses.get(i).getTitle(), afterUpdateResponses.get(i).getTitle());
