@@ -38,6 +38,12 @@ To execute tests, please go to project folder and execute the following command 
 mvn test -Dmaven.test.failure.ignore=true
 ```
 
+After execution is recommended to clean existing classes after compilation. Please use the following command:
+```
+mvn clean
+```
+
+
 ## Development
 
 ### Overview
