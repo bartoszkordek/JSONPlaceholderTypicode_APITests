@@ -39,6 +39,7 @@ public class Steps {
     private String baseUrl;
     private HttpResponse<String> responseBeforeUpdate;
     private HttpResponse<String> response;
+    private List<CompletableFuture<HttpResponse<String>>> asyncResponsesBeforeUpdate;
     private List<CompletableFuture<HttpResponse<String>>> asyncResponses;
     private List<StatusMessageBuilder> statuses;
 
@@ -48,6 +49,7 @@ public class Steps {
     public void setUp(){
         objectMapper = new ObjectMapper();
         objectWriter = new ObjectMapper().writer().withDefaultPrettyPrinter();
+        asyncResponsesBeforeUpdate = new ArrayList<>();
         asyncResponses = new ArrayList<>();
         statuses = new ArrayList<>();
     }
@@ -182,6 +184,25 @@ public class Steps {
         statuses.add(new StatusMessageBuilder(stepName, response.statusCode(), endpoint));
     }
 
+    @When("Update body to {string} for selected posts")
+    public void update_body_to_for_selected_posts(String body) throws JsonProcessingException {
+
+        asyncResponsesBeforeUpdate = asyncResponses;
+
+        List<String> endpoints = asyncResponsesBeforeUpdate.stream().map(res -> {
+            try {
+                return res.get(DEFAULT_TIMEOUT_SEC, TimeUnit.SECONDS).uri().toString();
+            } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }).toList();
+        Map<String, String> requestBodyAttributes = new HashMap<>();
+        requestBodyAttributes.put("body", body);
+        String requestBody = objectMapper.writeValueAsString(requestBodyAttributes);
+        sendPatchRequestSingleClientMultipleEndpoints(endpoints, requestBody);
+    }
+
     @When("Delete post id {int}")
     public void delete_post_id(Integer userId) throws IOException, InterruptedException {
         Method callingMethod = new Object() {} .getClass() .getEnclosingMethod();
@@ -304,6 +325,41 @@ public class Steps {
         Assertions.assertEquals(beforeUpdatePostResponse.getUserId(), patchedUpdatedPostResponse.getUserId());
     }
 
+    @Then("Validate that patch response bodies are correct for all updated posts and updated body is {string}")
+    public void validate_that_patch_response_bodies_are_correct_for_all_updated_posts_and_updated_body_is(String body)
+            throws ExecutionException, InterruptedException, TimeoutException, JsonProcessingException {
+
+        Assertions.assertEquals(asyncResponsesBeforeUpdate.size(), asyncResponses.size());
+
+        List<GET_PostResponse> beforeUpdateResponses = new ArrayList<>();
+        List<PATCH_PostResponse> afterUpdateResponses = new ArrayList<>();
+
+        for(int i=0; i<asyncResponses.size(); i++){
+            beforeUpdateResponses.add(
+                    objectMapper.readValue(
+                    asyncResponsesBeforeUpdate.get(i).thenApply(res -> res.body()).get(DEFAULT_TIMEOUT_SEC, TimeUnit.SECONDS),
+                    GET_PostResponse.class)
+            );
+            afterUpdateResponses.add(
+                    objectMapper.readValue(
+                            asyncResponses.get(i).thenApply(res -> res.body()).get(DEFAULT_TIMEOUT_SEC, TimeUnit.SECONDS),
+                            PATCH_PostResponse.class)
+            );
+        }
+
+        beforeUpdateResponses.sort(Comparator.comparing(GET_PostResponse::getId));
+        afterUpdateResponses.sort(Comparator.comparing(PATCH_PostResponse::getId));
+
+
+        for(int i=0; i<asyncResponses.size(); i++){
+            Assertions.assertEquals(beforeUpdateResponses.get(i).getId(), afterUpdateResponses.get(i).getId());
+            Assertions.assertEquals(beforeUpdateResponses.get(i).getUserId(), afterUpdateResponses.get(i).getUserId());
+            Assertions.assertEquals(beforeUpdateResponses.get(i).getTitle(), afterUpdateResponses.get(i).getTitle());
+            Assertions.assertEquals(body, afterUpdateResponses.get(i).getBody());
+        }
+
+    }
+
     @Then("Validate if all comments related to post id {int}")
     public void validate_if_all_comments_related_to_post_id(Integer totalComments) throws JsonProcessingException {
         GET_PostCommentsResponse[] getPostCommentsResponse = objectMapper.
@@ -322,6 +378,7 @@ public class Steps {
 
     @After
     public void cleanUp(){
+        asyncResponsesBeforeUpdate = null;
         asyncResponses = null;
         statuses = null;
     }
@@ -389,6 +446,21 @@ public class Steps {
                 .header("Content-type", "application/json; charset=UTF-8")
                 .build();
         response = client.send(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    private void sendPatchRequestSingleClientMultipleEndpoints(@NotNull List<String> endpoints, String body) {
+        HttpClient client = HttpClient.newHttpClient();
+        List<URI> targets = endpoints.stream().map( endpoint -> URI.create(endpoint)).toList();
+        asyncResponses = targets.stream()
+                .map(target -> client
+                        .sendAsync(
+                                HttpRequest.newBuilder(target)
+                                        .method(RequestMethod.PATCH.name(), HttpRequest.BodyPublishers.ofString(body))
+                                        .header("Content-type", "application/json; charset=UTF-8")
+                                        .build(),
+                                HttpResponse.BodyHandlers.ofString())
+                )
+                .toList();
     }
 
     private void sendDeleteRequestSingleClient(String endpoint) throws IOException, InterruptedException {

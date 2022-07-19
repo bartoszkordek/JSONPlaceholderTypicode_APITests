@@ -52,4 +52,14 @@ public class PATCH_PostResponse {
     public void setUserId(int userId) {
         this.userId = userId;
     }
+
+    @Override
+    public String toString() {
+        return "PATCH_PostResponse{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", body='" + body + '\'' +
+                ", userId=" + userId +
+                '}';
+    }
 }
